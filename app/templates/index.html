@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная - FreshTracker{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="jumbotron bg-light p-5 rounded mb-4">
+            <h1 class="display-5">Добро пожаловать в FreshTracker!</h1>
+            <p class="lead">Управляйте сроками годности продуктов, получайте рекомендации и сокращайте пищевые отходы.</p>
+            
+            {% if not user.is_authenticated %}
+            <hr class="my-4">
+            <p>Начните прямо сейчас! Зарегистрируйтесь и добавьте свои первые продукты.</p>
+            <a class="btn btn-success btn-lg me-2" href="{% url 'register' %}" role="button">
+                <i class="fas fa-user-plus me-1"></i>Регистрация
+            </a>
+            <a class="btn btn-outline-success btn-lg" href="{% url 'login' %}" role="button">
+                <i class="fas fa-sign-in-alt me-1"></i>Войти
+            </a>
+            {% endif %}
+        </div>
+
+        {% if user.is_authenticated %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card text-white bg-info mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Всего продуктов</h5>
+                        <h2 class="card-text">{{ total }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-warning mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Скоро истекает</h5>
+                        <h2 class="card-text">{{ expiring }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-danger mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Просрочено</h5>
+                        <h2 class="card-text">{{ expired }}</h2>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-white bg-success mb-3">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Использовано</h5>
+                        <h2 class="card-text">{{ total|add:expiring|add:expired|add:"-3" }}</h2>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        {% if graphic %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Статистика по категориям</h5>
+            </div>
+            <div class="card-body">
+                <img src="data:image/png;base64,{{ graphic }}" alt="График" class="img-fluid">
+            </div>
+        </div>
+        {% endif %}
+        {% endif %}
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>Рекомендации
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if user.is_authenticated and recommendations %}
+                    {% for rec in recommendations %}
+                    <div class="alert alert-{{ rec.urgency }} mb-2">
+                        <strong>{{ rec.template.title }}</strong><br>
+                        <small>{{ rec.product.name }} ({{ rec.days_remaining }} дней)</small>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        {% if user.is_authenticated %}
+                            Добавьте продукты, чтобы получать рекомендации.
+                        {% else %}
+                            Войдите в систему.
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if user.is_authenticated and recent_products %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Недавно добавленные</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Срок годности</th>
+                                <th>Статус</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in recent_products %}
+                            <tr>
+                                <td>{{ product.name }}</td>
+                                <td>{{ product.expiration_date }}</td>
+                                <td>
+                                    <span class="badge bg-{{ product.status_color }}">
+                                        {% if product.days_remaining < 0 %}
+                                            Просрочено
+                                        {% elif product.days_remaining <= 2 %}
+                                            Скоро
+                                        {% else %}
+                                            Ок
+                                        {% endif %}
+                                    </span>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
