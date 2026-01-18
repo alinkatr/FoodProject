@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}Статистика - FreshTracker{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">
+        <i class="fas fa-chart-bar text-success me-2"></i>
+        Статистика продуктов
+    </h1>
+    
+    {% if message %}
+    <div class="alert alert-info">
+        {{ message }}
+    </div>
+    {% else %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Всего продуктов</h5>
+                    <h2 class="text-primary">{{ total_products }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Средний срок</h5>
+                    <h2 class="text-info">{{ avg_days_left|floatformat:0 }} дней</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Самый срочный</h5>
+                    <h2 class="text-warning">{{ min_days_left }} дней</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Самый долгий</h5>
+                    <h2 class="text-success">{{ max_days_left }} дней</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if graphic %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">Визуальная аналитика</h5>
+        </div>
+        <div class="card-body">
+            <img src="data:image/png;base64,{{ graphic }}" alt="Статистика" class="img-fluid">
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Статистика по срочности</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Статус</th>
+                            <th>Количество</th>
+                            <th>Процент</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="table-danger">
+                            <td>Просрочено</td>
+                            <td>{{ urgency_stats.danger }}</td>
+                            <td>{{ urgency_stats.danger|divisibleby:total_products|floatformat:1 }}%</td>
+                        </tr>
+                        <tr class="table-warning">
+                            <td>Скоро истекает (≤ 2 дней)</td>
+                            <td>{{ urgency_stats.warning }}</td>
+                            <td>{{ urgency_stats.warning|divisibleby:total_products|floatformat:1 }}%</td>
+                        </tr>
+                        <tr class="table-info">
+                            <td>На этой неделе (3-7 дней)</td>
+                            <td>{{ urgency_stats.info }}</td>
+                            <td>{{ urgency_stats.info|divisibleby:total_products|floatformat:1 }}%</td>
+                        </tr>
+                        <tr class="table-success">
+                            <td>В норме (> 7 дней)</td>
+                            <td>{{ urgency_stats.safe }}</td>
+                            <td>{{ urgency_stats.safe|divisibleby:total_products|floatformat:1 }}%</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
