@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Добавить продукт - FreshTracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="fas fa-plus-circle me-2"></i>Добавить новый продукт
+                </h4>
+            </div>
+            
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="name" class="form-label required">Название продукта</label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   placeholder="Например: Молоко 'Домик в деревне'" required>
+                            <div class="form-text">Укажите конкретное название продукта</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="category" class="form-label required">Категория</label>
+                            <select class="form-select" id="category" name="category" required>
+                                <option value="" selected disabled>Выберите категорию...</option>
+                                {% for category in categories %}
+                                <option value="{{ category.id }}">{{ category.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <div class="form-text" id="category-info">
+                                Рекомендуемый срок хранения: <span id="default-shelf-life">не указан</span>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="expiration_date" class="form-label required">Срок годности до</label>
+                            <input type="date" class="form-control" id="expiration_date" 
+                                   name="expiration_date" required>
+                            <div class="form-text">Дата, когда продукт станет непригодным</div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="purchase_date" class="form-label">Дата покупки</label>
+                            <input type="date" class="form-control" id="purchase_date" 
+                                   name="purchase_date">
+                            <div class="form-text">Когда вы купили этот продукт</div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="quantity" class="form-label">Количество</label>
+                            <div class="input-group">
+                                <input type="number" class="form-control" id="quantity" 
+                                       name="quantity" min="0.1" step="0.1" placeholder="1" value="1">
+                                <select class="form-select" id="unit" name="unit" style="max-width: 100px;">
+                                    <option value="шт" selected>шт</option>
+                                    <option value="кг">кг</option>
+                                    <option value="г">г</option>
+                                    <option value="л">л</option>
+                                    <option value="мл">мл</option>
+                                    <option value="уп">уп</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="storage" class="form-label">Место хранения</label>
+                            <select class="form-select" id="storage" name="storage">
+                                <option value="" selected>Не указано</option>
+                                <option value="fridge">Холодильник</option>
+                                <option value="freezer">Морозилка</option>
+                                <option value="pantry">Кладовая</option>
+                                <option value="room">Комнатная температура</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <label for="priority" class="form-label">Приоритет использования</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="low">Низкий</option>
+                                <option value="medium" selected>Средний</option>
+                                <option value="high">Высокий</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12">
+                            <label for="notes" class="form-label">Заметки</label>
+                            <textarea class="form-control" id="notes" name="notes" 
+                                      rows="3" placeholder="Дополнительная информация о продукте..."></textarea>
+                            <div class="form-text">Например: "Открытая упаковка", "Хранить в темноте"</div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="notifications" name="notifications" checked>
+                                <label class="form-check-label" for="notifications">
+                                    Уведомлять об истечении срока
+                                </label>
+                            </div>
+                            <div class="form-text">Вы получите уведомление за 3 дня до истечения срока</div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-save me-2"></i>Сохранить продукт
+                        </button>
+                        <a href="{% url 'product_list' %}" class="btn btn-outline-secondary ms-2">
+                            <i class="fas fa-times me-1"></i>Отмена
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const today = new Date().toISOString().split('T')[0];
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowStr = tomorrow.toISOString().split('T')[0];
+    
+    const expirationInput = document.getElementById('expiration_date');
+    const purchaseInput = document.getElementById('purchase_date');
+
+    if (!expirationInput.value) {
+        expirationInput.value = tomorrowStr;
+    }
+    if (!purchaseInput.value) {
+        purchaseInput.value = today;
+    }
+
+    expirationInput.min = today;
+
+    const shelfLifeData = {
+        {% for category in categories %}
+        '{{ category.id }}': '{{ category.default_shelf_life_days }} дней',
+        {% endfor %}
+    };
+    
+    const categorySelect = document.getElementById('category');
+    const shelfLifeSpan = document.getElementById('default-shelf-life');
+    
+    categorySelect.addEventListener('change', function() {
+        const days = shelfLifeData[this.value] || 'не указан';
+        shelfLifeSpan.textContent = days;
+    });
+});
+</script>
+{% endblock %}
