@@ -5,7 +5,7 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = '4095b289-ba34-4e2a-ba88-64f7929fe180'
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = ['*', 'alinkatr.pythonanywhere.com']
 INSTALLED_APPS = [
