@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+
+{% block title %}Рекомендации - FreshTracker{% endblock %}
+
+{% block extra_css %}
+<style>
+.recommendation-card {
+    transition: transform 0.2s;
+    border-left: 4px solid;
+}
+.recommendation-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+.recommendation-urgent { border-left-color: #dc3545; }
+.recommendation-warning { border-left-color: #ffc107; }
+.recommendation-info { border-left-color: #17a2b8; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>
+        <i class="fas fa-lightbulb text-warning me-2"></i>
+        Персональные рекомендации
+    </h1>
+</div>
+
+<!-- Статистика рекомендаций -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted">Активных рекомендаций</h6>
+                <h2 class="text-primary">{{ total_recommendations }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted">Продуктов скоро истекает</h6>
+                <h2 class="text-warning">{{ expiring_count }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted">Экономия в месяц</h6>
+                <h2 class="text-success">{{ monthly_savings }} ₽</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card bg-light">
+            <div class="card-body text-center">
+                <h6 class="card-title text-muted">Спасено продуктов</h6>
+                <h2 class="text-info">{{ saved_products }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Список рекомендаций -->
+{% if recommendations %}
+<div class="row" id="recommendations-container">
+    {% for rec in recommendations %}
+    <div class="col-lg-4 col-md-6 mb-4">
+        <div class="card recommendation-card recommendation-{{ rec.urgency }} h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    {% if rec.urgency == 'urgent' %}
+                    <span class="badge bg-danger">Срочно!</span>
+                    {% elif rec.urgency == 'warning' %}
+                    <span class="badge bg-warning">Внимание</span>
+                    {% else %}
+                    <span class="badge bg-info">Рекомендация</span>
+                    {% endif %}
+                    <small class="text-muted">{{ rec.days_remaining }} дней осталось</small>
+                </div>
+                
+                <h5 class="card-title">
+                    <i class="{{ rec.template.icon }} text-{{ rec.urgency }} me-2"></i>
+                    {{ rec.template.title }}
+                </h5>
+                
+                <div class="mb-3">
+                    <span class="badge bg-info">{{ rec.product.category.name }}</span>
+                    <span class="badge bg-secondary">{{ rec.product.quantity }} {{ rec.product.unit }}</span>
+                </div>
+                
+                <p class="card-text">
+                    {{ rec.template.text }}
+                </p>
+                
+                <div class="recommendation-actions mt-3">
+                    <form method="POST" action="{% url 'product_mark_used' rec.product.id %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-success me-2">
+                            <i class="fas fa-check me-1"></i>Использовал
+                        </button>
+                    </form>
+                    {% if rec.template.action_link %}
+                    <a href="{{ rec.template.action_link }}" target="_blank" class="btn btn-sm btn-outline-info">
+                        <i class="fas fa-utensils me-1"></i>{{ rec.template.action_text|default:"Рецепты" }}
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-5" id="no-recommendations">
+    <i class="fas fa-lightbulb fa-4x text-muted mb-4"></i>
+    <h3>Пока нет рекомендаций</h3>
+    <p class="text-muted mb-4">
+        Добавьте продукты с указанием срока годности, чтобы получать персонализированные советы.
+    </p>
+    <a href="{% url 'product_add' %}" class="btn btn-success btn-lg">
+        <i class="fas fa-plus me-2"></i>Добавить продукты
+    </a>
+</div>
+{% endif %}
+{% endblock %}

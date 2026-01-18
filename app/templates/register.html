@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Регистрация - FreshTracker{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card">
+            <div class="card-header bg-success text-white text-center">
+                <h4 class="mb-0">
+                    <i class="fas fa-user-plus me-2"></i>Регистрация
+                </h4>
+            </div>
+            
+            <div class="card-body p-4">
+                <form method="POST" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.errors %}
+                    <div class="alert alert-danger">
+                        <h6>Исправьте следующие ошибки:</h6>
+                        <ul class="mb-0">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li><strong>{{ field }}:</strong> {{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_username" class="form-label">Имя пользователя *</label>
+                                {{ form.username }}
+                                <div class="form-text">Обязательное поле. Не более 150 символов.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_email" class="form-label">Email</label>
+                                {{ form.email }}
+                                <div class="form-text">Необязательное поле</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_password1" class="form-label">Пароль *</label>
+                                {{ form.password1 }}
+                                <div class="form-text">
+                                    <ul>
+                                        <li>Пароль не должен быть слишком похож на другую вашу личную информацию.</li>
+                                        <li>Пароль должен содержать как минимум 8 символов.</li>
+                                        <li>Пароль не должен быть слишком простым и распространенным.</li>
+                                        <li>Пароль не может состоять только из цифр.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="id_password2" class="form-label">Подтверждение пароля *</label>
+                                {{ form.password2 }}
+                                <div class="form-text">Для подтверждения введите, пожалуйста, пароль ещё раз.</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12">
+                            <div class="mb-3">
+                                <label for="id_first_name" class="form-label">Имя</label>
+                                {{ form.first_name }}
+                                <div class="form-text">Необязательное поле</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-grid gap-2 mt-4">
+                        <button type="submit" class="btn btn-success btn-lg">
+                            <i class="fas fa-user-check me-2"></i>Зарегистрироваться
+                        </button>
+                        <a href="{% url 'login' %}" class="btn btn-outline-secondary">
+                            Уже есть аккаунт? Войти
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
