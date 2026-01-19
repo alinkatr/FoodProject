@@ -347,7 +347,7 @@ def recommendations(request):
                     'days_remaining': 0,
                     'urgency': 'urgent'
                 })
-    money_saved = len(recommendations_list) * 150
+    # money_saved = len(recommendations_list) * 150
     
     context = {
         'recommendations': recommendations_list,
@@ -355,7 +355,7 @@ def recommendations(request):
         'expiring_count': user_products.filter(
             expiration_date__lte=timezone.now().date() + timedelta(days=3)
         ).count(),
-        'monthly_savings': money_saved,
+        # 'monthly_savings': money_saved,
         'saved_products': len(recommendations_list),
     }
     return render(request, 'recommendations.html', context)

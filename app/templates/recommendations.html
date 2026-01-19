@@ -12,7 +12,7 @@
     transform: translateY(-3px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
 }
-.recommendation-urgent { border-left-color: #dc3545; }
+.recommendation-urgent, .recommendation-danger { border-left-color: #dc3545; }
 .recommendation-warning { border-left-color: #ffc107; }
 .recommendation-info { border-left-color: #17a2b8; }
 </style>
@@ -44,14 +44,14 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <!-- <div class="col-md-3">
         <div class="card bg-light">
             <div class="card-body text-center">
                 <h6 class="card-title text-muted">Экономия в месяц</h6>
                 <h2 class="text-success">{{ monthly_savings }} ₽</h2>
             </div>
         </div>
-    </div>
+    </div> -->
     <div class="col-md-3">
         <div class="card bg-light">
             <div class="card-body text-center">
@@ -70,24 +70,46 @@
         <div class="card recommendation-card recommendation-{{ rec.urgency }} h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    {% if rec.urgency == 'urgent' %}
+                    {% if rec.urgency == 'urgent' or rec.urgency == 'danger' %}
                     <span class="badge bg-danger">Срочно!</span>
                     {% elif rec.urgency == 'warning' %}
                     <span class="badge bg-warning">Внимание</span>
                     {% else %}
                     <span class="badge bg-info">Рекомендация</span>
                     {% endif %}
-                    <small class="text-muted">{{ rec.days_remaining }} дней осталось</small>
+                    <small class="text-muted">
+                        {% if rec.days_remaining <= 0 %}
+                            Просрочено {{ rec.days_remaining|stringformat:"+d"|slice:"1:" }} дней назад
+                        {% else %}
+                            {{ rec.days_remaining }} дней осталось
+                        {% endif %}
+                    </small>
                 </div>
                 
                 <h5 class="card-title">
-                    <i class="{{ rec.template.icon }} text-{{ rec.urgency }} me-2"></i>
+                    <i class="{{ rec.template.icon }} 
+                        {% if rec.urgency == 'urgent' or rec.urgency == 'danger' %}
+                            text-danger
+                        {% elif rec.urgency == 'warning' %}
+                            text-warning
+                        {% else %}
+                            text-info
+                        {% endif %}
+                        me-2"></i>
                     {{ rec.template.title }}
                 </h5>
                 
                 <div class="mb-3">
-                    <span class="badge bg-info">{{ rec.product.category.name }}</span>
+                    <span class="badge bg-info">
+                        {% if rec.product and rec.product.category %}
+                            {{ rec.product.category.name }}
+                        {% else %}
+                            Без категории
+                        {% endif %}
+                    </span>
+                    {% if rec.product %}
                     <span class="badge bg-secondary">{{ rec.product.quantity }} {{ rec.product.unit }}</span>
+                    {% endif %}
                 </div>
                 
                 <p class="card-text">
@@ -95,12 +117,14 @@
                 </p>
                 
                 <div class="recommendation-actions mt-3">
+                    {% if rec.product %}
                     <form method="POST" action="{% url 'product_mark_used' rec.product.id %}" class="d-inline">
                         {% csrf_token %}
                         <button type="submit" class="btn btn-sm btn-outline-success me-2">
                             <i class="fas fa-check me-1"></i>Использовал
                         </button>
                     </form>
+                    {% endif %}
                     {% if rec.template.action_link %}
                     <a href="{{ rec.template.action_link }}" target="_blank" class="btn btn-sm btn-outline-info">
                         <i class="fas fa-utensils me-1"></i>{{ rec.template.action_text|default:"Рецепты" }}
